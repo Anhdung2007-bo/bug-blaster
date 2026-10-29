@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Bug Blaster & Assistant</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Orbitron:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Prism.js for Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#070b12',
+                            card: '#0f172a',
+                            border: '#1e293b',
+                            cyan: '#00f3ff',
+                            green: '#00ff87',
+                            pink: '#ff0055',
+                            purple: '#a855f7',
+                            yellow: '#facc15'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                        cyber: ['Orbitron', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Neon Glow Effects */
+        .neon-border-cyan {
+            border-color: #00f3ff;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.25);
+        }
+        .neon-border-pink {
+            border-color: #ff0055;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+        }
+        .neon-text-cyan {
+            color: #00f3ff;
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
+        }
+        .neon-text-green {
+            color: #00ff87;
+            text-shadow: 0 0 8px rgba(0, 255, 135, 0.6);
+        }
+        .neon-text-pink {
+            color: #ff0055;
+            text-shadow: 0 0 8px rgba(255, 0, 85, 0.6);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070b12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f3ff;
+        }
+
+        /* Laser Scan Line Animation */
+        @keyframes scanline {
+            0% { top: 0%; opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { top: 98%; opacity: 0.8; }
+        }
+        .scanline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00f3ff, #ff0055, #00ff87, transparent);
+            box-shadow: 0 0 12px #00f3ff, 0 0 20px #ff0055;
+            animation: scanline 2s linear infinite;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* Synth grid background */
+        .cyber-grid {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        /* Pulse LED */
+        @keyframes pulse-led {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+        .led-pulse {
+            animation: pulse-led 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-cyber-bg text-slate-200 font-sans min-h-screen flex flex-col cyber-grid antialiased selection:bg-cyber-pink selection:text-white">
+
+    <!-- ==================== HEADER & NAVBAR ==================== -->
+    <header class="sticky top-0 z-40 bg-cyber-bg/90 backdrop-blur-md border-b border-cyber-border px-4 lg:px-6 py-3">
+        <div class="max-w-[1800px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+            
+            <!-- Logo & Status -->
+            <div class="flex items-center justify-between w-full md:w-auto">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="resetWorkspace()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyber-pink via-cyber-purple to-cyber-cyan p-0.5 shadow-lg shadow-cyber-cyan/20">
+                        <div class="w-full h-full bg-cyber-bg rounded-[10px] flex items-center justify-center">
+                            <i class="fa-solid fa-bug-slash text-cyber-cyan text-lg"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="font-cyber font-extrabold text-lg tracking-wider text-white flex items-center gap-1">
+                            BUG<span class="text-cyber-cyan">BLASTER</span><span class="text-cyber-pink">AI</span>
+                        </span>
+                        <div class="flex items-center gap-2 text-[10px] font-mono">
+                            <span class="inline-block w-2 h-2 rounded-full bg-cyber-green led-pulse"></span>
+                            <span class="text-slate-400 uppercase tracking-widest">SYSTEM ONLINE</span>
+                            <span class="text-slate-600">|</span>
+                            <span id="modelDisplayBadge" class="text-cyber-cyan">Blaster-V4 Turbo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sound Toggle -->
+                <button onclick="toggleAudio()" id="audioBtn" class="p-2 rounded-xl bg-cyber-card border border-cyber-border text-slate-400 hover:text-cyber-cyan transition-all text-xs flex items-center gap-1.5 md:hidden">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+
+            <!-- Mode Selector Nav -->
+            <div class="flex items-center gap-1 bg-cyber-card/80 border border-cyber-border p-1 rounded-xl overflow-x-auto w-full md:w-auto text-xs font-semibold">
+                <button onclick="setAnalysisMode('bug_fix')" id="mode-bug_fix" class="mode-btn px-3 py-1.5 rounded-lg bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 transition-all flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-bug"></i> Bug Scan & Fix
+                </button>
+                <button onclick="setAnalysisMode('optimize')" id="mode-optimize" class="mode-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-gauge-high"></i> Optimize Speed
+                </button>
+                <button onclick="setAnalysisMode('refactor')" id="mode-refactor" class="mode-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-code-compare"></i> Refactor
+                </button>
+                <button onclick="setAnalysisMode('test')" id="mode-test" class="mode-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-vial-circle-check"></i> Unit Tests
+                </button>
+                <button onclick="setAnalysisMode('nl2code')" id="mode-nl2code" class="mode-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Prompt to Code
+                </button>
+            </div>
+
+            <!-- Action controls & API Config -->
+            <div class="flex items-center gap-3 w-full md:w-auto justify-end text-xs font-mono">
+                <!-- Model Config Dropdown -->
+                <select id="modelSelect" onchange="updateModelSelection()" class="bg-cyber-card border border-cyber-border rounded-xl px-3 py-1.5 text-slate-300 focus:outline-none focus:border-cyber-cyan cursor-pointer">
+                    <option value="blaster-v4">Blaster-V4 Turbo</option>
+                    <option value="deepscan-pro">DeepScan-Pro 3.5</option>
+                    <option value="quantum-coder">QuantumCoder Ultra</option>
+                    <option value="gemini-3-flash">Gemini 3 Flash (Live API)</option>
+                </select>
+
+                <!-- Audio FX Button -->
+                <button onclick="toggleAudio()" id="audioBtnDesktop" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyber-card border border-cyber-border text-slate-400 hover:text-cyber-cyan transition-all">
+                    <i class="fa-solid fa-volume-high" id="audioIcon"></i>
+                    <span id="audioText">SFX: ON</span>
+                </button>
+
+                <!-- API Key Modal Trigger -->
+                <button onclick="openApiModal()" class="px-3 py-1.5 rounded-xl bg-cyber-purple/10 border border-cyber-purple/30 text-cyber-purple hover:bg-cyber-purple/20 transition-all font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-key"></i> API Key
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN WORKSPACE (SPLIT VIEW) ==================== -->
+    <main class="flex-1 max-w-[1800px] w-full mx-auto p-3 lg:p-5 grid grid-cols-1 lg:grid-cols-12 gap-4">
+        
+        <!-- LEFT PANEL: CODE INPUT EDITOR (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-3">
+            <div class="bg-cyber-card border border-cyber-border rounded-2xl p-4 flex-1 flex flex-col justify-between shadow-xl relative overflow-hidden">
+                
+                <!-- Editor Header Toolbar -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-cyber-border">
+                    <div class="flex items-center gap-2">
+                        <!-- Language Selector -->
+                        <i class="fa-solid fa-code text-cyber-cyan"></i>
+                        <select id="languageSelect" onchange="handleLanguageChange()" class="bg-cyber-bg border border-cyber-border rounded-lg px-2.5 py-1 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyber-cyan">
+                            <option value="javascript">JavaScript</option>
+                            <option value="python">Python</option>
+                            <option value="cpp">C++</option>
+                            <option value="java">Java</option>
+                            <option value="typescript">TypeScript</option>
+                            <option value="rust">Rust</option>
+                            <option value="go">Go</option>
+                            <option value="sql">SQL</option>
+                        </select>
+                    </div>
+
+                    <!-- Preset Samples Dropdown -->
+                    <div class="flex items-center gap-2 text-xs">
+                        <select id="presetSelect" onchange="loadPresetSample()" class="bg-cyber-bg border border-cyber-border rounded-lg px-2 py-1 text-[11px] font-mono text-cyber-cyan focus:outline-none focus:border-cyber-cyan cursor-pointer">
+                            <option value="">-- Load Bug Preset --</option>
+                            <option value="async_race">Async Race Condition</option>
+                            <option value="memory_leak">Memory Leak & Closure</option>
+                            <option value="null_pointer">Null Pointer & Type Crash</option>
+                            <option value="out_of_bounds">Array Out of Bounds</option>
+                        </select>
+
+                        <button onclick="clearCodeEditor()" title="Clear Editor" class="p-1.5 rounded-lg bg-cyber-bg border border-cyber-border text-slate-400 hover:text-cyber-pink">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Code Input Area -->
+                <div class="relative flex-1 my-3 min-h-[360px] flex flex-col font-mono text-xs">
+                    <!-- Scanning Overlay -->
+                    <div id="scanOverlay" class="hidden absolute inset-0 bg-cyber-bg/70 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center gap-3">
+                        <div class="scanline"></div>
+                        <div class="w-12 h-12 rounded-full border-2 border-cyber-cyan border-t-transparent animate-spin"></div>
+                        <span class="font-cyber font-bold text-cyber-cyan text-sm tracking-widest animate-pulse">ANALYZING CODE MATRIX...</span>
+                        <span id="scanProgressText" class="text-[10px] text-slate-400 font-mono">Running AST Parser & Deep Diagnostic</span>
+                    </div>
+
+                    <!-- Code Textarea -->
+                    <textarea id="codeInput" spellcheck="false" placeholder="// Paste or type your buggy code here...&#10;function calculateTotal(items) {&#10;  let total = 0;&#10;  for(var i=0; i<=items.length; i++) {&#10;    total += items[i].price;&#10;  }&#10;  return total;&#10;}" 
+                        class="w-full flex-1 bg-cyber-bg/90 border border-cyber-border/80 rounded-xl p-3.5 text-slate-200 focus:outline-none focus:border-cyber-cyan resize-none leading-relaxed font-mono tracking-wide"></textarea>
+                </div>
+
+                <!-- Action Launch Control Bar -->
+                <div class="space-y-3 pt-2">
+                    <button id="runScanBtn" onclick="runAiBlast()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-cyber-cyan via-blue-600 to-cyber-pink font-cyber font-extrabold text-sm text-white shadow-lg shadow-cyber-cyan/20 hover:shadow-cyber-cyan/40 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt-lightning text-lg animate-bounce"></i>
+                        <span id="runBtnText">RUN AI BLAST & SCAN</span>
+                    </button>
+
+                    <!-- Quick Tweak Controls -->
+                    <div class="grid grid-cols-3 gap-2 text-[11px] font-mono">
+                        <button onclick="quickAction('quick_bug')" class="py-1.5 rounded-lg bg-cyber-bg border border-cyber-border hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan transition-all">
+                            <i class="fa-solid fa-bug text-cyber-pink"></i> Quick Scan
+                        </button>
+                        <button onclick="quickAction('speed')" class="py-1.5 rounded-lg bg-cyber-bg border border-cyber-border hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan transition-all">
+                            <i class="fa-solid fa-rocket text-cyber-green"></i> Speed Up
+                        </button>
+                        <button onclick="quickAction('explain')" class="py-1.5 rounded-lg bg-cyber-bg border border-cyber-border hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan transition-all">
+                            <i class="fa-solid fa-circle-info text-cyber-cyan"></i> Explain
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: DIAGNOSTICS & AI OUTPUT (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-3">
+            
+            <!-- Output Navigation Tabs -->
+            <div class="bg-cyber-card border border-cyber-border rounded-2xl p-4 flex-1 flex flex-col justify-between shadow-xl">
+                <div class="flex items-center justify-between border-b border-cyber-border pb-3 flex-wrap gap-2">
+                    <div class="flex items-center gap-1 text-xs font-semibold overflow-x-auto">
+                        <button onclick="switchTab('analysis')" id="tab-analysis" class="tab-btn px-3 py-1.5 rounded-xl bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 flex items-center gap-1.5">
+                            <i class="fa-solid fa-stethoscope"></i> Bug Analysis
+                        </button>
+                        <button onclick="switchTab('fixed_code')" id="tab-fixed_code" class="tab-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-code"></i> Fixed Code
+                        </button>
+                        <button onclick="switchTab('diff')" id="tab-diff" class="tab-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-code-compare"></i> Diff View
+                        </button>
+                        <button onclick="switchTab('metrics')" id="tab-metrics" class="tab-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-line"></i> Performance
+                        </button>
+                        <button onclick="switchTab('tests')" id="tab-tests" class="tab-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-vial"></i> Generated Tests
+                        </button>
+                    </div>
+
+                    <!-- Code Copy & Download -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="copyOutputCode()" class="px-2.5 py-1 rounded-lg bg-cyber-bg border border-cyber-border hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan text-xs font-mono transition-all flex items-center gap-1">
+                            <i class="fa-regular fa-copy"></i> Copy
+                        </button>
+                        <button onclick="downloadFixedCode()" class="px-2.5 py-1 rounded-lg bg-cyber-bg border border-cyber-border hover:border-cyber-green text-slate-300 hover:text-cyber-green text-xs font-mono transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-download"></i> Save
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT AREA -->
+                <div class="flex-1 my-3 overflow-y-auto max-h-[500px] pr-1">
+                    
+                    <!-- 1. BUG ANALYSIS TAB -->
+                    <div id="content-analysis" class="tab-content space-y-4">
+                        <div id="emptyAnalysisState" class="py-16 text-center text-slate-500 font-mono space-y-3">
+                            <i class="fa-solid fa-radar text-4xl text-cyber-cyan/40 animate-pulse"></i>
+                            <p>READY TO SCAN CODE MATRIX.</p>
+                            <p class="text-xs text-slate-600">Select a preset or paste custom code on the left, then click RUN AI BLAST.</p>
+                        </div>
+
+                        <div id="analysisResults" class="hidden space-y-4">
+                            <!-- Overall Density Gauge & Badges -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+                                <div class="bg-cyber-bg p-3 rounded-xl border border-cyber-pink/30 flex flex-col justify-between">
+                                    <span class="text-slate-400">Critical Bugs</span>
+                                    <span id="badgeCritical" class="text-xl font-bold text-cyber-pink mt-1">2</span>
+                                </div>
+                                <div class="bg-cyber-bg p-3 rounded-xl border border-cyber-yellow/30 flex flex-col justify-between">
+                                    <span class="text-slate-400">Warnings</span>
+                                    <span id="badgeWarnings" class="text-xl font-bold text-cyber-yellow mt-1">1</span>
+                                </div>
+                                <div class="bg-cyber-bg p-3 rounded-xl border border-cyber-cyan/30 flex flex-col justify-between">
+                                    <span class="text-slate-400">Optimizations</span>
+                                    <span id="badgeOptimizations" class="text-xl font-bold text-cyber-cyan mt-1">3</span>
+                                </div>
+                                <div class="bg-cyber-bg p-3 rounded-xl border border-cyber-purple/30 flex flex-col justify-between">
+                                    <span class="text-slate-400">Security Risk</span>
+                                    <span id="badgeSecurity" class="text-xl font-bold text-cyber-purple mt-1">Medium</span>
+                                </div>
+                            </div>
+
+                            <!-- Diagnostic Issues List -->
+                            <div class="space-y-3" id="issuesContainer">
+                                <!-- Dynamic issues injected -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. FIXED CODE TAB -->
+                    <div id="content-fixed_code" class="tab-content hidden">
+                        <pre class="rounded-xl bg-cyber-bg border border-cyber-border p-4 overflow-x-auto text-xs font-mono leading-relaxed"><code id="fixedCodeBlock" class="language-javascript">// AI Fixed code will appear here after scanning...</code></pre>
+                    </div>
+
+                    <!-- 3. DIFF VIEW TAB -->
+                    <div id="content-diff" class="tab-content hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+                            <div>
+                                <div class="text-cyber-pink font-bold pb-2 flex items-center gap-1">
+                                    <i class="fa-solid fa-minus-circle"></i> Original (Buggy Code)
+                                </div>
+                                <pre class="bg-cyber-bg border border-cyber-pink/20 rounded-xl p-3 text-slate-300 overflow-x-auto max-h-[400px] leading-relaxed"><code id="diffOriginal"></code></pre>
+                            </div>
+                            <div>
+                                <div class="text-cyber-green font-bold pb-2 flex items-center gap-1">
+                                    <i class="fa-solid fa-plus-circle"></i> AI Fixed Solution
+                                </div>
+                                <pre class="bg-cyber-bg border border-cyber-green/20 rounded-xl p-3 text-slate-300 overflow-x-auto max-h-[400px] leading-relaxed"><code id="diffFixed"></code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. PERFORMANCE METRICS TAB -->
+                    <div id="content-metrics" class="tab-content hidden space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+                            <div class="bg-cyber-bg p-4 rounded-xl border border-cyber-border space-y-2">
+                                <span class="text-slate-400 block">Time Complexity</span>
+                                <div class="flex items-center gap-2 text-sm font-bold">
+                                    <span id="metricTimeBefore" class="text-cyber-pink">O(n²)</span>
+                                    <i class="fa-solid fa-arrow-right text-slate-500 text-xs"></i>
+                                    <span id="metricTimeAfter" class="text-cyber-green">O(n)</span>
+                                </div>
+                            </div>
+                            <div class="bg-cyber-bg p-4 rounded-xl border border-cyber-border space-y-2">
+                                <span class="text-slate-400 block">Memory Efficiency</span>
+                                <div class="flex items-center gap-2 text-sm font-bold">
+                                    <span id="metricMemorySavings" class="text-cyber-cyan">+42% Saved</span>
+                                </div>
+                            </div>
+                            <div class="bg-cyber-bg p-4 rounded-xl border border-cyber-border space-y-2">
+                                <span class="text-slate-400 block">Bug Density Index</span>
+                                <div class="flex items-center gap-2 text-sm font-bold">
+                                    <span id="metricBugDensity" class="text-cyber-yellow">12.4 / 100 LOC</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar Metrics -->
+                        <div class="bg-cyber-bg p-4 rounded-xl border border-cyber-border space-y-3 font-mono text-xs">
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-slate-300">
+                                    <span>Code Safety Rating</span>
+                                    <span id="safetyPercent" class="text-cyber-green font-bold">98%</span>
+                                </div>
+                                <div class="w-full bg-cyber-card h-2 rounded-full overflow-hidden border border-cyber-border">
+                                    <div id="safetyBar" class="bg-cyber-green h-full w-[98%] transition-all duration-500"></div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-slate-300">
+                                    <span>Maintainability Index</span>
+                                    <span id="maintainPercent" class="text-cyber-cyan font-bold">92%</span>
+                                </div>
+                                <div class="w-full bg-cyber-card h-2 rounded-full overflow-hidden border border-cyber-border">
+                                    <div id="maintainBar" class="bg-cyber-cyan h-full w-[92%] transition-all duration-500"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. GENERATED TESTS TAB -->
+                    <div id="content-tests" class="tab-content hidden">
+                        <pre class="rounded-xl bg-cyber-bg border border-cyber-border p-4 overflow-x-auto text-xs font-mono leading-relaxed"><code id="unitTestsBlock" class="language-javascript">// Unit test suite generated by AI will appear here...</code></pre>
+                    </div>
+                </div>
+
+                <!-- AI ASSISTANT CHAT DRAWER -->
+                <div class="border-t border-cyber-border pt-3">
+                    <div class="flex items-center justify-between text-xs font-mono mb-2">
+                        <span class="text-cyber-cyan font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-comments"></i> AI Interactive Assistant Chat
+                        </span>
+                        <span class="text-[10px] text-slate-500">Ask follow-up questions</span>
+                    </div>
+
+                    <!-- Chat Box History -->
+                    <div id="chatHistory" class="bg-cyber-bg/80 border border-cyber-border/80 rounded-xl p-3 h-28 overflow-y-auto space-y-2 text-xs font-mono mb-2">
+                        <div class="text-slate-400">
+                            <span class="text-cyber-cyan font-bold">BlasterAI:</span> System ready. Ask me why bugs occurred, or how to re-architect this function.
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="flex gap-2">
+                        <input type="text" id="chatInput" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="E.g., Why did the async race condition happen?" 
+                            class="flex-1 bg-cyber-bg border border-cyber-border rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyber-cyan font-mono">
+                        <button onclick="sendChatMessage()" class="px-4 py-1.5 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan/40 text-cyber-cyan hover:bg-cyber-cyan/30 text-xs font-mono font-bold transition-all">
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================== API KEY MODAL ==================== -->
+    <div id="apiModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="bg-cyber-card border border-cyber-border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeApiModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-cyber-purple/20 text-cyber-purple flex items-center justify-center text-lg border border-cyber-purple/30">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <div>
+                    <h3 class="font-cyber font-bold text-white text-sm">GEMINI API CONFIGURATION</h3>
+                    <p class="text-[11px] text-slate-400 font-mono">Connect live Gemini 3 Flash model</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs font-mono">
+                <p class="text-slate-300 leading-relaxed">
+                    Leave blank to use the built-in <span class="text-cyber-cyan">Offline Cyber Engine</span> with instant simulation, or paste your API Key below for real-time live LLM fixes.
+                </p>
+                <div>
+                    <label class="block text-slate-400 mb-1">Gemini API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="AIzaSy..." 
+                        class="w-full bg-cyber-bg border border-cyber-border focus:border-cyber-cyan rounded-xl p-2.5 text-slate-200 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-cyber-border">
+                <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan/40 text-cyber-cyan hover:bg-cyber-cyan/30 text-xs font-mono font-bold transition-all">
+                    Save Key
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ==================== CORE JS ENGINE ==================== -->
+    <script>
+        // State
+        let currentMode = 'bug_fix';
+        let currentLanguage = 'javascript';
+        let soundEnabled = true;
+        let apiKey = localStorage.getItem('blaster_api_key') || '';
+        let lastAnalysisResult = null;
+
+        // Web Audio Synthesizer for Cyber SFX
+        let audioCtx = null;
+
+        function playSynthSound(freq = 440, type = 'sine', duration = 0.15) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('audioText').innerText = soundEnabled ? 'SFX: ON' : 'SFX: OFF';
+            document.getElementById('audioIcon').className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+            showToast(soundEnabled ? 'Audio SFX Enabled' : 'Audio SFX Muted');
+        }
+
+        // Preset Bug Samples
+        const PRESETS = {
+            async_race: `// Buggy Async Code: Race Condition & Unhandled Rejection
+async function fetchUserData(userIds) {
+  let results = [];
+  userIds.forEach(async (id) => {
+    let data = await fetch('/api/user/' + id);
+    results.push(data.json());
+  });
+  return results; // Returns empty array due to non-awaited forEach!
+}`,
+            memory_leak: `// Memory Leak & Retained Closures
+let globalCache = [];
+function processLargeData() {
+  let hugeDataArray = new Array(1000000).fill("DATA");
+  return function() {
+    globalCache.push(hugeDataArray); // Retains huge array endlessly!
+    console.log("Cached items count:", globalCache.length);
+  };
+}`,
+            null_pointer: `// Type Error & Unhandled Null Pointer
+function formatUserProfile(user) {
+  return {
+    name: user.name.toUpperCase(), // Crashes if user or user.name is null/undefined!
+    age: user.profile.age + 1,
+    city: user.address.city
+  };
+}`,
+            out_of_bounds: `// Array Bounds Error & Infinite Loop
+function findMaximum(numbers) {
+  let max = numbers[0];
+  for(let i = 0; i <= numbers.length; i++) { // Off-by-one bug! Accesses numbers[numbers.length]
+    if(numbers[i] > max) {
+      max = numbers[i];
+    }
+  }
+  return max;
+}`
+        };
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            if (apiKey) document.getElementById('apiKeyInput').value = apiKey;
+            loadPresetSample();
+        });
+
+        function handleLanguageChange() {
+            currentLanguage = document.getElementById('languageSelect').value;
+            playSynthSound(600, 'triangle');
+        }
+
+        function loadPresetSample() {
+            const val = document.getElementById('presetSelect').value;
+            if (val && PRESETS[val]) {
+                document.getElementById('codeInput').value = PRESETS[val];
+                playSynthSound(500, 'sine');
+            }
+        }
+
+        function clearCodeEditor() {
+            document.getElementById('codeInput').value = '';
+            playSynthSound(300, 'sawtooth');
+        }
+
+        function setAnalysisMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.className = 'mode-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5 whitespace-nowrap';
+            });
+            const activeBtn = document.getElementById(`mode-${mode}`);
+            if (activeBtn) {
+                activeBtn.className = 'mode-btn px-3 py-1.5 rounded-lg bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 transition-all flex items-center gap-1.5 whitespace-nowrap';
+            }
+            playSynthSound(700, 'sine');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.className = 'tab-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white flex items-center gap-1.5';
+            });
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+            document.getElementById(`tab-${tab}`).className = 'tab-btn px-3 py-1.5 rounded-xl bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 flex items-center gap-1.5';
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+            playSynthSound(650, 'square');
+        }
+
+        function updateModelSelection() {
+            const model = document.getElementById('modelSelect').value;
+            document.getElementById('modelDisplayBadge').innerText = model;
+            showToast(`Engine switched to: ${model}`);
+            playSynthSound(800, 'sawtooth');
+        }
+
+        // AI BLAST ENGINE EXECUTION
+        async function runAiBlast() {
+            const code = document.getElementById('codeInput').value.trim();
+            if (!code) {
+                showToast('Please input code or load a preset first!', 'error');
+                return;
+            }
+
+            // Show Laser Scan Line Animation
+            document.getElementById('scanOverlay').classList.remove('hidden');
+            playSynthSound(200, 'sawtooth', 0.5);
+
+            setTimeout(async () => {
+                if (apiKey && document.getElementById('modelSelect').value === 'gemini-3-flash') {
+                    await fetchGeminiFix(code);
+                } else {
+                    runOfflineCyberSimulation(code);
+                }
+
+                document.getElementById('scanOverlay').classList.add('hidden');
+                document.getElementById('emptyAnalysisState').classList.add('hidden');
+                document.getElementById('analysisResults').classList.remove('hidden');
+
+                playSynthSound(880, 'sine', 0.3);
+                showToast('AI Diagnostic Scan Complete!', 'success');
+            }, 1800);
+        }
+
+        // Offline Fallback AI Logic Engine
+        function runOfflineCyberSimulation(code) {
+            let fixed = code;
+            let issues = [];
+            let unitTests = '';
+
+            if (code.includes('forEach') && code.includes('async')) {
+                fixed = `// AI Fixed Solution: Using Promise.all & map
+async function fetchUserData(userIds) {
+  const promises = userIds.map(async (id) => {
+    let response = await fetch('/api/user/' + id);
+    return await response.json();
+  });
+  return await Promise.all(promises);
+}`;
+                issues = [
+                    { type: 'Critical', text: 'Async Race Condition: Array.prototype.forEach does not wait for promises to resolve.', line: 'Line 3' },
+                    { type: 'Warning', text: 'Unreturned Promise array causes function to resolve prematurely with empty results.', line: 'Line 7' }
+                ];
+                unitTests = `describe('fetchUserData', () => {
+  it('should wait for all async user fetches to complete', async () => {
+    const res = await fetchUserData([1, 2]);
+    expect(res).to.have.lengthOf(2);
+  });
+});`;
+            } else if (code.includes('globalCache')) {
+                fixed = `// AI Fixed Solution: WeakSet / Cache Eviction
+let globalCache = new WeakSet();
+function processLargeData() {
+  let hugeDataArray = new Array(1000000).fill("DATA");
+  return function() {
+    // Process without holding long-lived global memory reference
+    console.log("Processing batch safely...");
+  };
+}`;
+                issues = [
+                    { type: 'Critical', text: 'Memory Leak: Unbounded closure retains huge 1,000,000 element array in global scope.', line: 'Line 5' }
+                ];
+                unitTests = `it('should release memory after closure execution', () => {
+  const fn = processLargeData();
+  fn();
+  expect(globalCache.size).to.be.below(100);
+});`;
+            } else {
+                // Generic Smart Fix
+                fixed = `// AI Sanitized & Refactored Output (${currentLanguage.toUpperCase()})
+// Added null-checks, bound constraints & optimization
+` + code.replace(/<=/g, '<').replace(/\bvar\b/g, 'let');
+
+                issues = [
+                    { type: 'Warning', text: 'Potential Off-By-One boundary overflow check.', line: 'Loop Index' },
+                    { type: 'Optimization', text: 'Replace var with scope-safe let block bindings.', line: 'General' }
+                ];
+
+                unitTests = `// Generated Automated Unit Test Suite
+describe('Automated AI Code Verification', () => {
+  it('should execute safely without crashing under edge cases', () => {
+    // Test execution block
+  });
+});`;
+            }
+
+            // Populate Results UI
+            renderAnalysisUI(issues, fixed, code, unitTests);
+        }
+
+        // Live Gemini API Call
+        async function fetchGeminiFix(code) {
+            const prompt = `Act as an elite cyber code diagnostic engine. Analyze this ${currentLanguage} code. 
+Mode: ${currentMode}.
+Code:
+${code}
+
+Provide response in structured JSON with keys:
+- issues: array of objects with {type: "Critical"|"Warning"|"Optimization", text: string, line: string}
+- fixedCode: string
+- unitTests: string
+- timeBefore: string
+- timeAfter: string`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+                const data = await response.json();
+                const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (jsonText) {
+                    const parsed = JSON.parse(jsonText);
+                    renderAnalysisUI(parsed.issues || [], parsed.fixedCode || code, code, parsed.unitTests || '');
+                } else {
+                    runOfflineCyberSimulation(code);
+                }
+            } catch (err) {
+                showToast('Gemini API connection error. Falling back to Cyber Engine.', 'error');
+                runOfflineCyberSimulation(code);
+            }
+        }
+
+        function renderAnalysisUI(issues, fixedCode, originalCode, unitTests) {
+            lastAnalysisResult = { fixedCode, originalCode };
+
+            // Render Issues
+            const container = document.getElementById('issuesContainer');
+            container.innerHTML = issues.map(iss => {
+                const badgeColor = iss.type === 'Critical' ? 'bg-cyber-pink/20 text-cyber-pink border-cyber-pink/30' : 'bg-cyber-yellow/20 text-cyber-yellow border-cyber-yellow/30';
+                return `
+                    <div class="p-3.5 rounded-xl bg-cyber-bg border border-cyber-border space-y-1 font-mono text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded font-bold border ${badgeColor}">${iss.type}</span>
+                            <span class="text-slate-500">${iss.line}</span>
+                        </div>
+                        <p class="text-slate-200 pt-1">${iss.text}</p>
+                    </div>
+                `;
+            }).join('');
+
+            // Fixed Code & Prism Highlighting
+            document.getElementById('fixedCodeBlock').textContent = fixedCode;
+            document.getElementById('diffOriginal').textContent = originalCode;
+            document.getElementById('diffFixed').textContent = fixedCode;
+            document.getElementById('unitTestsBlock').textContent = unitTests;
+
+            if (window.Prism) Prism.highlightAll();
+        }
+
+        // Quick Action Shortcuts
+        function quickAction(type) {
+            if (type === 'quick_bug') setAnalysisMode('bug_fix');
+            if (type === 'speed') setAnalysisMode('optimize');
+            if (type === 'explain') setAnalysisMode('refactor');
+            runAiBlast();
+        }
+
+        // Interactive Assistant Chat
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const chatHistory = document.getElementById('chatHistory');
+            
+            // Append User Message
+            const userDiv = document.createElement('div');
+            userDiv.className = 'text-slate-300';
+            userDiv.innerHTML = `<span class="text-cyber-pink font-bold">You:</span> ${escapeHtml(msg)}`;
+            chatHistory.appendChild(userDiv);
+
+            input.value = '';
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            playSynthSound(500, 'sine');
+
+            // AI Reply Simulation
+            setTimeout(() => {
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'text-slate-300';
+                aiDiv.innerHTML = `<span class="text-cyber-cyan font-bold">BlasterAI:</span> The primary cause was asynchronous loop handling. Replacing array iteration with <code class="text-cyber-green font-mono">Promise.all()</code> ensures non-blocking sequential execution.`;
+                chatHistory.appendChild(aiDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                playSynthSound(700, 'triangle');
+            }, 800);
+        }
+
+        // Helper Copy & Save
+        function copyOutputCode() {
+            if (!lastAnalysisResult) return;
+            navigator.clipboard.writeText(lastAnalysisResult.fixedCode);
+            showToast('Fixed code copied to clipboard!', 'success');
+            playSynthSound(900, 'sine');
+        }
+
+        function downloadFixedCode() {
+            if (!lastAnalysisResult) return;
+            const blob = new Blob([lastAnalysisResult.fixedCode], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fixed_code.${currentLanguage === 'javascript' ? 'js' : 'txt'}`;
+            a.click();
+            showToast('Downloaded fixed code file!');
+        }
+
+        // API Modal
+        function openApiModal() { document.getElementById('apiModal').classList.remove('hidden'); }
+        function closeApiModal() { document.getElementById('apiModal').classList.add('hidden'); }
+        function saveApiKey() {
+            apiKey = document.getElementById('apiKeyInput').value.trim();
+            localStorage.setItem('blaster_api_key', apiKey);
+            closeApiModal();
+            showToast('API Key saved successfully!');
+        }
+
+        function resetWorkspace() {
+            clearCodeEditor();
+            document.getElementById('analysisResults').classList.add('hidden');
+            document.getElementById('emptyAnalysisState').classList.remove('hidden');
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const color = type === 'error' ? 'border-cyber-pink text-cyber-pink' : 'border-cyber-cyan text-cyber-cyan';
+            toast.className = `bg-cyber-card border ${color} px-4 py-2.5 rounded-xl text-xs font-mono shadow-2xl flex items-center gap-2 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid fa-terminal"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+    </script>
+</body>
+</html>
